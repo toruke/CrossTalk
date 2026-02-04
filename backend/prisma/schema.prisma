@@ -1,0 +1,154 @@
+// backend/prisma/schema.prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PROF
+  ELEVE
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  clerkId   String? @unique
+  email     String  @unique
+  password  String?
+  firstName String
+  lastName  String
+  role      Role
+
+  // Relations
+  enrollments      Enrollment[]
+  coursesTaught    Course[]   @relation("TeacherCourses")
+  sentMessages     Message[]  @relation("SentMessages")
+  receivedMessages Message[]  @relation("ReceivedMessages")
+  progress         StudentProgress[]
+  quizAttempts     QuizAttempt[]
+}
+
+model Course {
+  id          Int     @id @default(autoincrement())
+  language    String
+  level       String
+  description String?
+
+  teacherId Int
+  teacher   User @relation("TeacherCourses", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  enrollments Enrollment[]
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id    Int    @id @default(autoincrement())
+  title String
+  order Int    @default(0)
+
+  courseId Int
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  quiz     Quiz?
+  progress StudentProgress[]
+}
+
+model Quiz {
+  id           Int   @id @default(autoincrement())
+  title        String
+  passingScore Int   @default(70)
+
+  lessonId Int    @unique
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  questions Question[]
+  attempts  QuizAttempt[]
+}
+
+model Question {
+  id    Int    @id @default(autoincrement())
+  text  String
+  order Int    @default(0)
+
+  quizId Int
+  quiz   Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  options QuestionOption[]
+  answers StudentAnswer[]
+}
+
+model QuestionOption {
+  id        Int     @id @default(autoincrement())
+  text      String
+  isCorrect Boolean @default(false)
+  order     Int     @default(0)
+
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  answers StudentAnswer[]
+}
+
+model StudentProgress {
+  id          Int       @id @default(autoincrement())
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+
+  userId   Int
+  lessonId Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model QuizAttempt {
+  id          Int      @id @default(autoincrement())
+  score       Int
+  completedAt DateTime @default(now())
+
+  userId Int
+  quizId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz   Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  answers StudentAnswer[]
+}
+
+model StudentAnswer {
+  id Int @id @default(autoincrement())
+
+  attemptId  Int
+  questionId Int
+  optionId   Int
+
+  attempt  QuizAttempt    @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  option   QuestionOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+}
+
+model Enrollment {
+  id       Int      @id @default(autoincrement())
+  joinedAt DateTime @default(now())
+  userId   Int
+  courseId Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  content    String
+  sentAt     DateTime @default(now())
+  senderId   Int
+  receiverId Int
+  sender     User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+}

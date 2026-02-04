@@ -1,0 +1,24 @@
+# Ignore backend folder when building frontend
+backend/
+
+# Git files
+.git/
+.gitignore
+
+# Node modules (handled by volume mounts)
+node_modules/
+
+# Next.js build output
+.next/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db

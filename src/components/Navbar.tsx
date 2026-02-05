@@ -3,19 +3,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, Shield, GraduationCap, BookOpen } from 'lucide-react';
 import { useState } from 'react';
 import {
   SignedIn,
   SignedOut,
   UserButton,
-  useUser,
 } from '@clerk/nextjs';
+import { usePrismaUser } from '@/src/hooks/usePrismaUser';
 
 export const Navbar = ({ onNavigate, currentPage }: { onNavigate: (page: string) => void, currentPage: string }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user } = useUser();
-  const role = user?.unsafeMetadata?.role as string | undefined;
+  const { role } = usePrismaUser();
 
   // Items de navigation selon le rôle
   const getNavItems = () => {
@@ -31,6 +30,7 @@ export const Navbar = ({ onNavigate, currentPage }: { onNavigate: (page: string)
       items.push({ key: 'my-courses', label: 'Mes cours' });
       items.push({ key: 'teachers', label: 'Mes professeurs' });
     } else if (role === 'ADMIN') {
+      items.push({ key: 'admin', label: 'Dashboard' });
       items.push({ key: 'courses', label: 'Cours' });
       items.push({ key: 'teachers', label: 'Professeurs' });
       items.push({ key: 'students', label: 'Élèves' });
@@ -85,7 +85,21 @@ export const Navbar = ({ onNavigate, currentPage }: { onNavigate: (page: string)
           {/* Right side */}
           <div className="flex items-center gap-3">
             <SignedIn>
-              <UserButton 
+              {role && (
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                  role === 'ADMIN'
+                    ? 'bg-red-100 text-red-700'
+                    : role === 'PROF'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-green-100 text-green-700'
+                }`}>
+                  {role === 'ADMIN' && <Shield className="w-3 h-3" />}
+                  {role === 'PROF' && <GraduationCap className="w-3 h-3" />}
+                  {role === 'ELEVE' && <BookOpen className="w-3 h-3" />}
+                  {role === 'ADMIN' ? 'Admin' : role === 'PROF' ? 'Prof' : 'Eleve'}
+                </span>
+              )}
+              <UserButton
                 afterSignOutUrl="/"
                 appearance={{
                   elements: {

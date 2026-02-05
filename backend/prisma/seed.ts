@@ -18,29 +18,29 @@ async function main() {
   
   // Profs d'Anglais
   const pSmith = await prisma.user.create({
-    data: { email: 'smith@school.com', password: '123', name: 'John Smith', role: 'PROF' }
+    data: { email: 'smith@school.com', password: '123', firstName: 'John', lastName: 'Smith', role: 'PROF' }
   });
   const pJohnson = await prisma.user.create({
-    data: { email: 'johnson@school.com', password: '123', name: 'Emily Johnson', role: 'PROF' }
+    data: { email: 'johnson@school.com', password: '123', firstName: 'Emily', lastName: 'Johnson', role: 'PROF' }
   });
 
   // Profs d'Espagnol
   const pGarcia = await prisma.user.create({
-    data: { email: 'garcia@school.com', password: '123', name: 'Maria Garcia', role: 'PROF' }
+    data: { email: 'garcia@school.com', password: '123', firstName: 'Maria', lastName: 'Garcia', role: 'PROF' }
   });
   const pRodriguez = await prisma.user.create({
-    data: { email: 'rodriguez@school.com', password: '123', name: 'Carlos Rodriguez', role: 'PROF' }
+    data: { email: 'rodriguez@school.com', password: '123', firstName: 'Carlos', lastName: 'Rodriguez', role: 'PROF' }
   });
 
   // Profs Divers (Allemand, Asiatique, Italien)
   const pMuller = await prisma.user.create({
-    data: { email: 'muller@school.com', password: '123', name: 'Hans Muller', role: 'PROF' }
+    data: { email: 'muller@school.com', password: '123', firstName: 'Hans', lastName: 'Muller', role: 'PROF' }
   });
   const pTanaka = await prisma.user.create({
-    data: { email: 'tanaka@school.com', password: '123', name: 'Kenji Tanaka', role: 'PROF' }
+    data: { email: 'tanaka@school.com', password: '123', firstName: 'Kenji', lastName: 'Tanaka', role: 'PROF' }
   });
   const pRossi = await prisma.user.create({
-    data: { email: 'rossi@school.com', password: '123', name: 'Giulia Rossi', role: 'PROF' }
+    data: { email: 'rossi@school.com', password: '123', firstName: 'Giulia', lastName: 'Rossi', role: 'PROF' }
   });
 
   console.log('📚 Création du Catalogue (Langue + Niveau uniquement)...');
@@ -76,11 +76,19 @@ async function main() {
   await prisma.course.create({ data: { language: 'Italien', level: 'A2', teacherId: pRossi.id } });
   await prisma.course.create({ data: { language: 'Italien', level: 'B1', teacherId: pRossi.id } });
 
+  console.log('👑 Création de l\'Admin...');
+
+  const admin = await prisma.user.create({
+    data: { email: 'emmanuel.narcisi@gmail.com', password: 'CrossTalk-Admin2024!', firstName: 'Emmanuel', lastName: 'Narcisi', role: 'ADMIN' }
+  });
+
+  console.log(`✅ Admin créé: ${admin.firstName} ${admin.lastName} (ID: ${admin.id})`);
+
   console.log('👨‍🎓 Création des Élèves et inscriptions...');
 
   // --- CRÉATION D'UN ÉLÈVE ---
   const eleve1 = await prisma.user.create({
-    data: { email: 'jean@eleve.com', password: '123', name: 'Jean Dupont', role: 'ELEVE' }
+    data: { email: 'jean@eleve.com', password: '123', firstName: 'Jean', lastName: 'Dupont', role: 'ELEVE' }
   });
 
   // Récupérer quelques cours pour les inscriptions
@@ -108,7 +116,7 @@ async function main() {
     data: { userId: eleve1.id, courseId: courseItalienA1.id }
   });
 
-  console.log(`✅ Élève créé: ${eleve1.name} (ID: ${eleve1.id}) avec 4 inscriptions`);
+  console.log(`✅ Élève créé: ${eleve1.firstName} ${eleve1.lastName} (ID: ${eleve1.id}) avec 4 inscriptions`);
 
   console.log('✅ Base de données rechargée avec succès !');
 }

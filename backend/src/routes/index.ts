@@ -8,6 +8,7 @@ import teachersRoutes from './teachers.routes';
 import messagesRoutes from './messages.routes';
 import lessonsRoutes from './lessons.routes';
 import quizzesRoutes from './quizzes.routes';
+import statsRoutes from './stats.routes';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/teachers', teachersRoutes);  // /teachers, /teachers/my/:userId, /t
 router.use('/messages', messagesRoutes);  // /messages
 router.use('/lessons', lessonsRoutes);    // /lessons/:id, /lessons/:id/progress
 router.use('/quizzes', quizzesRoutes);    // /quizzes/:id, /quizzes/:id/submit
+router.use('/stats', statsRoutes);        // /stats (admin dashboard)
 
 export default router;

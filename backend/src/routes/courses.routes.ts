@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { asyncHandler } from '../middlewares/errorHandler';
+import { requireAuth, requireRole } from '../middlewares/auth';
 
 const router = Router();
 
@@ -12,8 +13,8 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
   res.json(courses);
 }));
 
-// POST /courses - Créer un cours (pour PROF)
-router.post('/', asyncHandler(async (req: Request, res: Response) => {
+// POST /courses - Créer un cours (PROF ou ADMIN)
+router.post('/', requireAuth, requireRole('PROF', 'ADMIN'), asyncHandler(async (req: Request, res: Response) => {
   const { language, level, teacherId } = req.body;
   
   const course = await prisma.course.create({
@@ -52,8 +53,8 @@ router.get('/teacher/:teacherId', asyncHandler(async (req: Request, res: Respons
   res.json(courses);
 }));
 
-// PUT /courses/:id - Update course metadata
-router.put('/:id', asyncHandler(async (req: Request, res: Response) => {
+// PUT /courses/:id - Update course metadata (PROF ou ADMIN)
+router.put('/:id', requireAuth, requireRole('PROF', 'ADMIN'), asyncHandler(async (req: Request, res: Response) => {
   const courseId = Number(req.params.id);
   const { description, language, level } = req.body;
 

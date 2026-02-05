@@ -84,7 +84,7 @@ export default function OnboardingPage() {
         console.log('3. Création du cours...');
         const courseRes = await fetch(`${config.apiUrl}/courses`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-clerk-id': user.id },
           body: JSON.stringify({
             language: courseData.language,
             level: courseData.level,
@@ -105,7 +105,7 @@ export default function OnboardingPage() {
       console.log('5. Mise à jour Clerk metadata...');
       await user.update({
         unsafeMetadata: {
-          role: selectedRole,
+          role: prismaUser.role,
           onboardingComplete: true,
           prismaId: prismaUser.id,
         },

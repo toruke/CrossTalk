@@ -3,6 +3,7 @@
 import { useUser } from '@clerk/nextjs';
 import { useState, useEffect } from 'react';
 import { config } from '@/src/lib/config';
+import { setClerkId } from '@/src/services/api';
 
 interface PrismaUser {
   id: number;
@@ -45,8 +46,31 @@ export function usePrismaUser() {
         return;
       }
 
+      // Initialiser le clerkId pour les appels API authentifiés
+      setClerkId(clerkUser.id);
+
       try {
-        const res = await fetch(`${config.apiUrl}/users/me/${clerkUser.id}`);
+        let res = await fetch(`${config.apiUrl}/users/me/${clerkUser.id}`);
+
+        // Si 404 et onboarding déjà fait, re-sync automatique (ex: après un reseed)
+        if (res.status === 404 && clerkUser.unsafeMetadata?.onboardingComplete) {
+          const syncRes = await fetch(`${config.apiUrl}/users/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              clerkId: clerkUser.id,
+              email: clerkUser.emailAddresses[0]?.emailAddress,
+              firstName: clerkUser.firstName || null,
+              lastName: clerkUser.lastName || null,
+              role: clerkUser.unsafeMetadata?.role || 'ELEVE',
+            }),
+          });
+          if (syncRes.ok) {
+            // Re-fetch après sync
+            res = await fetch(`${config.apiUrl}/users/me/${clerkUser.id}`);
+          }
+        }
+
         if (res.ok) {
           const data = await res.json();
           setPrismaUser(data);

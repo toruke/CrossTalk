@@ -3,6 +3,21 @@ import { config } from '@/src/lib/config';
 
 const API_BASE_URL = config.apiUrl;
 
+// Auth: stocke le clerkId pour l'envoyer en header
+let _clerkId: string | null = null;
+
+export function setClerkId(id: string) {
+  _clerkId = id;
+}
+
+function getHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (_clerkId) {
+    headers['x-clerk-id'] = _clerkId;
+  }
+  return headers;
+}
+
 export interface Course {
   id: string;
   language: string;
@@ -48,11 +63,41 @@ export interface LoginResponse {
   token?: string;
 }
 
+export interface AdminUser {
+  id: number;
+  clerkId: string | null;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: 'ADMIN' | 'PROF' | 'ELEVE';
+}
+
+export interface AdminStats {
+  users: { total: number; admins: number; profs: number; eleves: number };
+  courses: { total: number };
+  enrollments: { total: number };
+  lessons: { total: number };
+  quizAttempts: { total: number };
+  recentEnrollments: Array<{
+    id: number;
+    joinedAt: string;
+    user: { id: number; firstName: string; lastName: string; email: string };
+    course: { id: number; language: string; level: string };
+  }>;
+  recentUsers: Array<{
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+  }>;
+}
+
 // API Service
 export const api = {
   // Test endpoint
   async ping(): Promise<{ message: string }> {
-    const response = await fetch(`${API_BASE_URL}/`);
+    const response = await fetch(`${API_BASE_URL}/`, { headers: getHeaders() });
     if (!response.ok) throw new Error('API is not available');
     return response.json();
   },
@@ -61,9 +106,7 @@ export const api = {
   async login(email: string, password: string): Promise<LoginResponse> {
     const response = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(),
       body: JSON.stringify({ email, password }),
     });
 
@@ -76,7 +119,7 @@ export const api = {
 
   // Get all courses
   async getCourses(): Promise<Course[]> {
-    const response = await fetch(`${API_BASE_URL}/courses`);
+    const response = await fetch(`${API_BASE_URL}/courses`, { headers: getHeaders() });
 
     if (!response.ok) {
       throw new Error('Failed to fetch courses');
@@ -87,7 +130,7 @@ export const api = {
 
   // Get user's enrolled courses
   async getMyCourses(userId: string): Promise<Course[]> {
-    const response = await fetch(`${API_BASE_URL}/my-courses/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/my-courses/${userId}`, { headers: getHeaders() });
 
     if (!response.ok) {
       throw new Error('Failed to fetch user courses');
@@ -98,7 +141,7 @@ export const api = {
 
   // Get messages between two users
   async getMessages(userId: string, contactId: string): Promise<Message[]> {
-    const response = await fetch(`${API_BASE_URL}/messages/${userId}/${contactId}`);
+    const response = await fetch(`${API_BASE_URL}/messages/${userId}/${contactId}`, { headers: getHeaders() });
 
     if (!response.ok) {
       throw new Error('Failed to fetch messages');
@@ -111,9 +154,7 @@ export const api = {
   async sendMessage(senderId: string, receiverId: string, content: string): Promise<Message> {
     const response = await fetch(`${API_BASE_URL}/messages`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(),
       body: JSON.stringify({
         senderId,
         receiverId,
@@ -131,7 +172,7 @@ export const api = {
 
   // Get all teachers (for admin)
   async getAllTeachers(): Promise<Teacher[]> {
-    const response = await fetch(`${API_BASE_URL}/teachers`);
+    const response = await fetch(`${API_BASE_URL}/teachers`, { headers: getHeaders() });
 
     if (!response.ok) {
       throw new Error('Failed to fetch teachers');
@@ -142,7 +183,7 @@ export const api = {
 
   // Get teachers for user's enrolled courses
   async getMyTeachers(userId: string): Promise<Teacher[]> {
-    const response = await fetch(`${API_BASE_URL}/my-teachers/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/my-teachers/${userId}`, { headers: getHeaders() });
 
     if (!response.ok) {
       throw new Error('Failed to fetch my teachers');
@@ -155,9 +196,7 @@ export const api = {
   async enrollInCourse(userId: number, courseId: number): Promise<{ id: number }> {
     const response = await fetch(`${API_BASE_URL}/enrollments`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(),
       body: JSON.stringify({ userId, courseId }),
     });
 
@@ -173,12 +212,51 @@ export const api = {
   async unenrollFromCourse(userId: number, courseId: number): Promise<{ success: boolean }> {
     const response = await fetch(`${API_BASE_URL}/enrollments/${userId}/${courseId}`, {
       method: 'DELETE',
+      headers: getHeaders(),
     });
 
     if (!response.ok) {
       throw new Error('Failed to unenroll');
     }
 
+    return response.json();
+  },
+
+  // Admin: Get dashboard stats
+  async getAdminStats(): Promise<AdminStats> {
+    const response = await fetch(`${API_BASE_URL}/stats`, { headers: getHeaders() });
+    if (!response.ok) throw new Error('Failed to fetch stats');
+    return response.json();
+  },
+
+  // Admin: Get all users
+  async getAllUsers(): Promise<AdminUser[]> {
+    const response = await fetch(`${API_BASE_URL}/users`, { headers: getHeaders() });
+    if (!response.ok) throw new Error('Failed to fetch users');
+    return response.json();
+  },
+
+  // Admin: Change user role
+  async changeUserRole(userId: number, role: string): Promise<AdminUser> {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/role`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ role }),
+    });
+    if (!response.ok) throw new Error('Failed to change role');
+    return response.json();
+  },
+
+  // Admin: Delete user
+  async deleteUser(userId: number): Promise<{ success: boolean }> {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to delete user');
+    }
     return response.json();
   },
 };

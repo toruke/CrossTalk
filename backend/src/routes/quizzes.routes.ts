@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { asyncHandler } from '../middlewares/errorHandler';
+import { requireAuth, requireRole } from '../middlewares/auth';
 
 const router = Router();
 
@@ -27,8 +28,8 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
   res.json(quiz);
 }));
 
-// POST /quizzes - Create a quiz for a lesson
-router.post('/', asyncHandler(async (req: Request, res: Response) => {
+// POST /quizzes - Create a quiz for a lesson (PROF ou ADMIN)
+router.post('/', requireAuth, requireRole('PROF', 'ADMIN'), asyncHandler(async (req: Request, res: Response) => {
   const { lessonId, title, passingScore, questions } = req.body;
 
   const quiz = await prisma.quiz.create({
@@ -60,8 +61,8 @@ router.post('/', asyncHandler(async (req: Request, res: Response) => {
   res.json(quiz);
 }));
 
-// PUT /quizzes/:id - Update quiz metadata
-router.put('/:id', asyncHandler(async (req: Request, res: Response) => {
+// PUT /quizzes/:id - Update quiz metadata (PROF ou ADMIN)
+router.put('/:id', requireAuth, requireRole('PROF', 'ADMIN'), asyncHandler(async (req: Request, res: Response) => {
   const { title, passingScore } = req.body;
 
   const quiz = await prisma.quiz.update({
@@ -72,8 +73,8 @@ router.put('/:id', asyncHandler(async (req: Request, res: Response) => {
   res.json(quiz);
 }));
 
-// DELETE /quizzes/:id
-router.delete('/:id', asyncHandler(async (req: Request, res: Response) => {
+// DELETE /quizzes/:id (PROF ou ADMIN)
+router.delete('/:id', requireAuth, requireRole('PROF', 'ADMIN'), asyncHandler(async (req: Request, res: Response) => {
   await prisma.quiz.delete({ where: { id: Number(req.params.id) } });
   res.json({ success: true });
 }));

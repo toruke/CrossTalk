@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { asyncHandler } from '../middlewares/errorHandler';
+import { requireAuth, requireRole } from '../middlewares/auth';
 
 const router = Router();
 
-// GET /teachers - Tous les profs (pour Admin)
-router.get('/', asyncHandler(async (req: Request, res: Response) => {
+// GET /teachers - Tous les profs (Admin uniquement)
+router.get('/', requireAuth, requireRole('ADMIN'), asyncHandler(async (req: Request, res: Response) => {
   const teachers = await prisma.user.findMany({
     where: { role: 'PROF' },
     select: {

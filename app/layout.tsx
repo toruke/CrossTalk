@@ -4,6 +4,7 @@ import {
   ClerkProvider,
 } from '@clerk/nextjs';
 import { WebSocketProvider } from '@/src/contexts/WebSocketContext';
+import { CookieConsent } from '@/src/components/ui/CookieConsent';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,6 +35,7 @@ export default function RootLayout({
         >
           <WebSocketProvider>
             {children}
+            <CookieConsent />
           </WebSocketProvider>
         </body>
       </html>

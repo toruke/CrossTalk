@@ -1,6 +1,7 @@
 'use client';
 
 import { SignIn } from '@clerk/nextjs';
+import { LegalLink } from '@/src/components/LegalLink';
 
 export default function SignInPage() {
   return (
@@ -10,7 +11,7 @@ export default function SignInPage() {
           <h1 className="text-3xl font-bold text-gray-900">CrossTalk</h1>
           <p className="text-gray-600 mt-2">Connectez-vous pour continuer</p>
         </div>
-        <SignIn 
+        <SignIn
           appearance={{
             elements: {
               formButtonPrimary: 'bg-[#1E7F88] hover:bg-[#1E7F88]/90',
@@ -21,6 +22,10 @@ export default function SignInPage() {
           path="/sign-in"
           signUpUrl="/sign-up"
         />
+        <div className="mt-4 text-center text-xs text-gray-500">
+          <LegalLink type="terms" text="CGU" className="hover:underline mr-4" />
+          <LegalLink type="privacy" text="Confidentialité" className="hover:underline" />
+        </div>
       </div>
     </div>
   );

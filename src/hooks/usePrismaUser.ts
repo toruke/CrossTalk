@@ -1,9 +1,9 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
+import { useUser, useAuth } from '@clerk/nextjs';
 import { useState, useEffect } from 'react';
 import { config } from '@/src/lib/config';
-import { setClerkId } from '@/src/services/api';
+import { setAuthToken } from '@/src/services/api';
 
 interface PrismaUser {
   id: number;
@@ -32,6 +32,7 @@ interface PrismaUser {
 
 export function usePrismaUser() {
   const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  const { getToken } = useAuth();
   const [prismaUser, setPrismaUser] = useState<PrismaUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,15 +40,20 @@ export function usePrismaUser() {
   useEffect(() => {
     const fetchUser = async () => {
       if (!clerkLoaded) return;
-      
+
       if (!clerkUser) {
         setLoading(false);
         setPrismaUser(null);
         return;
       }
 
-      // Initialiser le clerkId pour les appels API authentifiés
-      setClerkId(clerkUser.id);
+      // Initialiser le token pour les appels API authentifiés
+      try {
+        const token = await getToken();
+        setAuthToken(token);
+      } catch (e) {
+        console.error("Erreur récupération token", e);
+      }
 
       try {
         let res = await fetch(`${config.apiUrl}/users/me/${clerkUser.id}`);

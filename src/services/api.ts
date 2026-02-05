@@ -3,17 +3,17 @@ import { config } from '@/src/lib/config';
 
 const API_BASE_URL = config.apiUrl;
 
-// Auth: stocke le clerkId pour l'envoyer en header
-let _clerkId: string | null = null;
+// Auth: stocke le token JWT pour l'envoyer en header Authorization
+let _authToken: string | null = null;
 
-export function setClerkId(id: string) {
-  _clerkId = id;
+export function setAuthToken(token: string | null) {
+  _authToken = token;
 }
 
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (_clerkId) {
-    headers['x-clerk-id'] = _clerkId;
+  if (_authToken) {
+    headers['Authorization'] = `Bearer ${_authToken}`;
   }
   return headers;
 }

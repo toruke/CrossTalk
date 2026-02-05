@@ -41,7 +41,9 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     if (!prismaUser) return;
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-    const ws = new WebSocket('ws://localhost:4000');
+    const protocol = window.location.protocol === 'https:' || process.env.NODE_ENV === 'production' ? 'wss' : 'ws';
+    const wsUrl = `${protocol}://localhost:4000`; // Note: In prod this should likely be the actual backend URL
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {

@@ -41,8 +41,12 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     if (!prismaUser) return;
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-    const protocol = window.location.protocol === 'https:' || process.env.NODE_ENV === 'production' ? 'wss' : 'ws';
-    const wsUrl = `${protocol}://localhost:4000`; // Note: In prod this should likely be the actual backend URL
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    // En prod, on passe par Nginx/Traefik via /api
+    // En dev local, on tape directement le port 4000
+    const wsUrl = process.env.NODE_ENV === 'production'
+      ? `${protocol}://${window.location.host}/api`
+      : `${protocol}://localhost:4000`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 

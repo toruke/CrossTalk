@@ -25,7 +25,7 @@ services:
       - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
-      - crosstalk-network
+      - dmz_net  # Traefik on DMZ only (cannot access DB)
 
   # Database Service
   db:
@@ -50,7 +50,7 @@ services:
       - "traefik.http.routers.api.middlewares=api-strip"
       # Service: Port 4000
       - "traefik.http.services.api.loadbalancer.server.port=4000"
-    command: sh -c "npx prisma migrate deploy && npm start"
+    command: sh -c "npx prisma db push --accept-data-loss && npm start"
 
   # Frontend Service
   frontend:
@@ -71,4 +71,5 @@ services:
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
 
 networks:
-  crosstalk-network:
+  dmz_net:  # Inherited from base compose file
+  data_net:  # Inherited from base compose file

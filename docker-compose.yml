@@ -8,12 +8,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
+    # Port removed for security - DB only accessible internally
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - crosstalk-network
+      - data_net  # Private network only
 
   # Container 2 : Backend Express/API
   api:
@@ -30,7 +29,8 @@ services:
       - ./backend:/app
       - /app/node_modules
     networks:
-      - crosstalk-network
+      - dmz_net   # Public network for HTTP traffic
+      - data_net  # Private network for DB access
     # CORRECTION : db push est plus sûr pour le développement
     command: sh -c "npx prisma db push --accept-data-loss && npm run dev"
 
@@ -52,11 +52,14 @@ services:
       - /app/node_modules
       - /app/.next
     networks:
-      - crosstalk-network
+      - dmz_net  # Public network only
 
 volumes:
   postgres_data:
 
 networks:
-  crosstalk-network:
+  dmz_net:
     driver: bridge
+  data_net:
+    driver: bridge
+    internal: true  # No internet access for database security

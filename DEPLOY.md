@@ -47,7 +47,16 @@ nano .env.production
 Assurez-vous d'avoir créé un enregistrement **A** qui pointe `crosstalk.be` vers l'IP publique de votre serveur.
 Sans cela, Traefik ne pourra pas générer le certificat SSL.
 
-## 3. Lancement
+## 3. Préparation SSL (Traefik)
+
+Créez le dossier pour les certificats avec les bonnes permissions :
+```bash
+mkdir letsencrypt
+touch letsencrypt/acme.json
+chmod 600 letsencrypt/acme.json
+```
+
+## 4. Lancement
 
 ```bash
 # Lancer les conteneurs (Traefik, Frontend, Backend, DB)

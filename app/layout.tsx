@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import {
-  ClerkProvider,
-} from '@clerk/nextjs';
-import { WebSocketProvider } from '@/src/contexts/WebSocketContext';
-import { CookieConsent } from '@/src/components/ui/CookieConsent';
 import "./globals.css";
+import { ThemeProvider } from "@/src/components/ThemeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CrossTalk - Apprendre les langues",
-  description: "Plateforme d'apprentissage des langues avec des professeurs natifs",
+  title: "Atena — Cours particuliers en Brabant Wallon",
+  description: "Plateforme de gestion de cours particuliers à domicile pour le Brabant Wallon.",
 };
 
 export default function RootLayout({
@@ -28,17 +24,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="fr">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <WebSocketProvider>
-            {children}
-            <CookieConsent />
-          </WebSocketProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="fr" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

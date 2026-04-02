@@ -1,0 +1,494 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  admin
+  prof
+  eleve
+  parent
+}
+
+enum JourSemaine {
+  lundi
+  mardi
+  mercredi
+  jeudi
+  vendredi
+  samedi
+  dimanche
+}
+
+enum SessionType {
+  presentiel
+  en_ligne
+}
+
+enum SessionStatut {
+  demandee
+  confirmee
+  realisee
+  annulee
+  reportee
+}
+
+enum EvaluationType {
+  qcm
+  qrm
+  vrai_faux
+  reponse_libre
+  papier
+}
+
+enum ResultStatut {
+  en_cours
+  soumis
+  corrige
+}
+
+enum ModuleType {
+  pdf
+  video
+  exercice
+  autre
+}
+
+enum NotifType {
+  nouveau_feedback
+  nouveau_message
+  nouveau_qcm
+  rappel_seance
+  seance_confirmee
+  seance_annulee
+  nouveau_module
+  rapport_disponible
+}
+
+enum ObjectifStatut {
+  en_cours
+  atteint
+  abandonne
+}
+
+enum RapportStatut {
+  en_generation
+  genere
+  erreur
+}
+
+enum PaiementStatut {
+  en_attente
+  paye
+  rembourse
+}
+
+enum PaiementMode {
+  cash
+  virement
+  autre
+}
+
+model Niveau {
+  id          String       @id @default(uuid())
+  nom         String       @db.VarChar(50)
+  ordre       Int
+  createdAt   DateTime     @default(now())
+  profEleve   ProfEleve[]
+  sessions    Session[]
+  evaluations Evaluation[]
+  modules     Module[]
+}
+
+model Matiere {
+  id                    String                @id @default(uuid())
+  nom                   String                @db.VarChar(100)
+  description           String?
+  createdAt             DateTime              @default(now())
+  profEleve             ProfEleve[]
+  sessions              Session[]
+  evaluations           Evaluation[]
+  modules               Module[]
+  objectifsPedagogiques ObjectifPedagogique[]
+}
+
+model User {
+  id                 String                 @id @default(uuid())
+  email              String                 @unique @db.VarChar(255)
+  nom                String                 @db.VarChar(100)
+  prenom             String                 @db.VarChar(100)
+  role               UserRole
+  telephone          String?                @db.VarChar(20)
+  adresse            String?
+  avatarUrl          String?
+  parentId           String?
+  lastLoginAt        DateTime?
+  loginAttempts      Int                    @default(0)
+  lockedUntil        DateTime?
+  deletedAt          DateTime?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  parent             User?                  @relation("ParentEnfant", fields: [parentId], references: [id])
+  enfants            User[]                 @relation("ParentEnfant")
+  profEleves         ProfEleve[]            @relation("ProfRelation")
+  disponibilites     Disponibilite[]
+  sessionsProf       Session[]              @relation("SessionProf")
+  feedbacksProf      Feedback[]             @relation("FeedbackProf")
+  evaluationsCreees  Evaluation[]
+  assignmentsFaits   EvaluationAssignment[] @relation("AssignedBy")
+  modulesCreees      Module[]
+  moduleAssignsFaits ModuleAssignment[]     @relation("ModuleAssignedBy")
+  documentsRecus     DocumentEleve[]        @relation("DocumentProf")
+  sessionsAnnulees   Session[]              @relation("SessionAnnulePar")
+  resultsCorrigesBy  EvaluationResult[]     @relation("CorrigePar")
+  paiementsProf      Paiement[]             @relation("PaiementProf")
+  profEleveCreatedBy ProfEleve[]            @relation("ProfEleveCreatedBy")
+  eleveRelations     ProfEleve[]            @relation("EleveRelation")
+  sessionsEleve      Session[]              @relation("SessionEleve")
+  feedbacksEleve     Feedback[]             @relation("FeedbackEleve")
+  assignments        EvaluationAssignment[] @relation("EleveAssignment")
+  results            EvaluationResult[]     @relation("EleveResult")
+  moduleAcces        ModuleAssignment[]     @relation("EleveModuleAcces")
+  documentsUploades  DocumentEleve[]        @relation("DocumentEleve")
+  objectifsEleve     ObjectifPedagogique[]  @relation("ObjectifEleve")
+  rapportsEleve      RapportPdf[]           @relation("RapportEleve")
+  paiementsEleve     Paiement[]             @relation("PaiementEleve")
+  rapportsParent     RapportPdf[]           @relation("RapportParent")
+  conversationsP1    Conversation[]         @relation("Participant1")
+  conversationsP2    Conversation[]         @relation("Participant2")
+  messagesSent       Message[]
+  notifications      Notification[]
+  objectifsProf      ObjectifPedagogique[]  @relation("ObjectifProf")
+  auditLogs          AuditLog[]
+}
+
+model ProfEleve {
+  id        String   @id @default(uuid())
+  profId    String
+  eleveId   String
+  matiereId String
+  niveauId  String?
+  createdBy String
+  createdAt DateTime @default(now())
+  prof      User     @relation("ProfRelation", fields: [profId], references: [id], onDelete: Cascade)
+  eleve     User     @relation("EleveRelation", fields: [eleveId], references: [id], onDelete: Cascade)
+  matiere   Matiere  @relation(fields: [matiereId], references: [id])
+  niveau    Niveau?  @relation(fields: [niveauId], references: [id])
+  createur  User     @relation("ProfEleveCreatedBy", fields: [createdBy], references: [id])
+
+  @@unique([profId, eleveId, matiereId])
+}
+
+model Disponibilite {
+  id             String      @id @default(uuid())
+  profId         String
+  jour           JourSemaine
+  heureDebut     DateTime    @db.Time
+  heureFin       DateTime    @db.Time
+  recurrent      Boolean     @default(true)
+  dateSpecifique DateTime?   @db.Date
+  createdAt      DateTime    @default(now())
+  prof           User        @relation(fields: [profId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id              String          @id @default(uuid())
+  profId          String
+  eleveId         String
+  matiereId       String
+  niveauId        String?
+  dateDebut       DateTime
+  dateFin         DateTime
+  type            SessionType     @default(presentiel)
+  statut          SessionStatut   @default(demandee)
+  annulePar       String?
+  motifAnnulation String?
+  annuleAt        DateTime?
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  prof            User            @relation("SessionProf", fields: [profId], references: [id])
+  eleve           User            @relation("SessionEleve", fields: [eleveId], references: [id])
+  matiere         Matiere         @relation(fields: [matiereId], references: [id])
+  niveau          Niveau?         @relation(fields: [niveauId], references: [id])
+  annuleUser      User?           @relation("SessionAnnulePar", fields: [annulePar], references: [id])
+  feedback        Feedback?
+  paiement        Paiement?
+  documentsEleve  DocumentEleve[]
+}
+
+model Feedback {
+  id               String   @id @default(uuid())
+  sessionId        String   @unique
+  profId           String
+  eleveId          String
+  themesAbordes    String
+  pointsPositifs   String
+  pointsAAmeliorer String
+  objectifSuivant  String
+  noteInterne      Int?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  session          Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  prof             User     @relation("FeedbackProf", fields: [profId], references: [id])
+  eleve            User     @relation("FeedbackEleve", fields: [eleveId], references: [id])
+}
+
+model Evaluation {
+  id          String                 @id @default(uuid())
+  profId      String
+  matiereId   String
+  niveauId    String?
+  titre       String                 @db.VarChar(255)
+  description String?
+  type        EvaluationType
+  dureeLimite Int?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  prof        User                   @relation(fields: [profId], references: [id])
+  matiere     Matiere                @relation(fields: [matiereId], references: [id])
+  niveau      Niveau?                @relation(fields: [niveauId], references: [id])
+  questions   Question[]
+  assignments EvaluationAssignment[]
+  results     EvaluationResult[]
+}
+
+model Question {
+  id                String            @id @default(uuid())
+  evaluationId      String
+  enonce            String
+  type              EvaluationType
+  ordre             Int
+  points            Decimal           @default(1) @db.Decimal(5, 2)
+  createdAt         DateTime          @default(now())
+  evaluation        Evaluation        @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  reponsesPossibles ReponsePossible[]
+  reponsesEleve     ReponseEleve[]    @relation("QuestionReponses")
+}
+
+model ReponsePossible {
+  id          String   @id @default(uuid())
+  questionId  String
+  texte       String
+  estCorrecte Boolean  @default(false)
+  ordre       Int
+  createdAt   DateTime @default(now())
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model EvaluationAssignment {
+  id            String             @id @default(uuid())
+  evaluationId  String
+  eleveId       String
+  assignedBy    String
+  dateLimite    DateTime?
+  availableFrom DateTime           @default(now())
+  createdAt     DateTime           @default(now())
+  evaluation    Evaluation         @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  eleve         User               @relation("EleveAssignment", fields: [eleveId], references: [id], onDelete: Cascade)
+  assigner      User               @relation("AssignedBy", fields: [assignedBy], references: [id])
+  results       EvaluationResult[]
+
+  @@unique([evaluationId, eleveId])
+}
+
+model EvaluationResult {
+  id           String               @id @default(uuid())
+  evaluationId String
+  eleveId      String
+  assignmentId String
+  statut       ResultStatut         @default(en_cours)
+  score        Decimal?             @db.Decimal(5, 2)
+  scoreMax     Decimal?             @db.Decimal(5, 2)
+  dureePassee  Int?
+  submittedAt  DateTime?
+  corrigeAt    DateTime?
+  corrigePar   String?
+  createdAt    DateTime             @default(now())
+  evaluation   Evaluation           @relation(fields: [evaluationId], references: [id])
+  eleve        User                 @relation("EleveResult", fields: [eleveId], references: [id])
+  assignment   EvaluationAssignment @relation(fields: [assignmentId], references: [id])
+  correcteur   User?                @relation("CorrigePar", fields: [corrigePar], references: [id])
+  reponses     ReponseEleve[]
+}
+
+model ReponseEleve {
+  id               String           @id @default(uuid())
+  resultId         String
+  questionId       String
+  reponseTexte     String?
+  fichierUrl       String?
+  fichierIv        String?
+  reponsesChoisies String[]
+  estCorrecte      Boolean?
+  pointsObtenus    Decimal?         @db.Decimal(5, 2)
+  commentaireProf  String?
+  createdAt        DateTime         @default(now())
+  result           EvaluationResult @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  question         Question         @relation("QuestionReponses", fields: [questionId], references: [id])
+}
+
+model Module {
+  id           String             @id @default(uuid())
+  profId       String
+  matiereId    String
+  niveauId     String?
+  titre        String             @db.VarChar(255)
+  description  String?
+  type         ModuleType
+  fileUrl      String?
+  fileType     String?            @db.VarChar(50)
+  fileSize     Int?
+  dureeMinutes Int?
+  nbPages      Int?
+  tags         String[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  prof         User               @relation(fields: [profId], references: [id])
+  matiere      Matiere            @relation(fields: [matiereId], references: [id])
+  niveau       Niveau?            @relation(fields: [niveauId], references: [id])
+  assignments  ModuleAssignment[]
+}
+
+model ModuleAssignment {
+  id         String   @id @default(uuid())
+  moduleId   String
+  eleveId    String
+  assignedBy String
+  createdAt  DateTime @default(now())
+  module     Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  eleve      User     @relation("EleveModuleAcces", fields: [eleveId], references: [id], onDelete: Cascade)
+  assigner   User     @relation("ModuleAssignedBy", fields: [assignedBy], references: [id])
+
+  @@unique([moduleId, eleveId])
+}
+
+model DocumentEleve {
+  id              String    @id @default(uuid())
+  eleveId         String
+  profId          String
+  sessionId       String?
+  titre           String    @db.VarChar(255)
+  fileUrl         String
+  fileType        String    @db.VarChar(50)
+  fileSize        Int?
+  commentaireProf String?
+  commenteAt      DateTime?
+  createdAt       DateTime  @default(now())
+  eleve           User      @relation("DocumentEleve", fields: [eleveId], references: [id], onDelete: Cascade)
+  prof            User      @relation("DocumentProf", fields: [profId], references: [id])
+  session         Session?  @relation(fields: [sessionId], references: [id])
+}
+
+model Conversation {
+  id             String    @id @default(uuid())
+  participant1Id String
+  participant2Id String
+  lastMessageAt  DateTime?
+  createdAt      DateTime  @default(now())
+  participant1   User      @relation("Participant1", fields: [participant1Id], references: [id])
+  participant2   User      @relation("Participant2", fields: [participant2Id], references: [id])
+  messages       Message[]
+
+  @@unique([participant1Id, participant2Id])
+}
+
+model Message {
+  id                String       @id @default(uuid())
+  conversationId    String
+  senderId          String
+  contenuChiffre    String
+  iv                String
+  isDelivered       Boolean      @default(false)
+  deliveredAt       DateTime?
+  isRead            Boolean      @default(false)
+  readAt            DateTime?
+  isPinned          Boolean      @default(false)
+  deletedBySender   Boolean      @default(false)
+  deletedByReceiver Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  conversation      Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender            User         @relation(fields: [senderId], references: [id])
+}
+
+model Notification {
+  id         String    @id @default(uuid())
+  userId     String
+  type       NotifType
+  titre      String    @db.VarChar(255)
+  contenu    String?
+  entityType String?   @db.VarChar(50)
+  entityId   String?
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ObjectifPedagogique {
+  id          String         @id @default(uuid())
+  profId      String
+  eleveId     String
+  matiereId   String
+  titre       String         @db.VarChar(255)
+  description String?
+  dateCible   DateTime?      @db.Date
+  statut      ObjectifStatut @default(en_cours)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  prof        User           @relation("ObjectifProf", fields: [profId], references: [id])
+  eleve       User           @relation("ObjectifEleve", fields: [eleveId], references: [id])
+  matiere     Matiere        @relation(fields: [matiereId], references: [id])
+}
+
+model RapportPdf {
+  id          String        @id @default(uuid())
+  eleveId     String
+  parentId    String
+  mois        Int
+  annee       Int
+  statut      RapportStatut @default(en_generation)
+  fileUrl     String?
+  fileIv      String?
+  generatedAt DateTime?
+  envoyeAt    DateTime?
+  createdAt   DateTime      @default(now())
+  eleve       User          @relation("RapportEleve", fields: [eleveId], references: [id])
+  parent      User          @relation("RapportParent", fields: [parentId], references: [id])
+
+  @@unique([eleveId, mois, annee])
+}
+
+model Paiement {
+  id        String         @id @default(uuid())
+  sessionId String         @unique
+  eleveId   String
+  profId    String
+  montant   Decimal        @db.Decimal(8, 2)
+  statut    PaiementStatut @default(en_attente)
+  mode      PaiementMode?
+  paidAt    DateTime?
+  notes     String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  session   Session        @relation(fields: [sessionId], references: [id])
+  eleve     User           @relation("PaiementEleve", fields: [eleveId], references: [id])
+  prof      User           @relation("PaiementProf", fields: [profId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String   @db.VarChar(100)
+  entityType String?  @db.VarChar(50)
+  entityId   String?
+  ipAddress  String?
+  userAgent  String?
+  details    Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}

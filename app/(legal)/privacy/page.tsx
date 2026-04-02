@@ -4,11 +4,11 @@ export default function PrivacyPage() {
         <div className="container mx-auto py-10 px-4 max-w-4xl">
             <h1 className="text-3xl font-bold mb-8">Politique de Confidentialité</h1>
 
-            <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
+            <div className="space-y-8">
                 <section>
                     <h2 className="text-2xl font-semibold mb-4">1. Préambule</h2>
                     <p className="text-muted-foreground">
-                        La présente politique de confidentialité explique comment CrossTalk ("nous", "notre") collecte, utilise et protège vos données personnelles lorsque vous utilisez notre plateforme d'apprentissage des langues.
+                        La présente politique de confidentialité explique comment Atena ("nous", "notre") collecte, utilise et protège vos données personnelles lorsque vous utilisez notre plateforme d'apprentissage des langues.
                         Nous nous engageons à respecter le Règlement Général sur la Protection des Données (RGPD).
                     </p>
                 </section>
@@ -17,7 +17,7 @@ export default function PrivacyPage() {
                     <h2 className="text-2xl font-semibold mb-4">2. Données collectées</h2>
                     <p className="mb-2">Nous collectons les types de données suivants :</p>
                     <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                        <li><strong>Informations d'identité :</strong> Nom, prénom (via Clerk).</li>
+                        <li><strong>Informations d'identité :</strong> Nom, prénom (via ).</li>
                         <li><strong>Informations de contact :</strong> Adresse email.</li>
                         <li><strong>Données d'apprentissage :</strong> Progression dans les cours, scores aux quiz, langues étudiées.</li>
                         <li><strong>Messages :</strong> Contenu des échanges entre élèves et professeurs (stockés de manière sécurisée).</li>
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
                         Nous ne vendons JAMAIS vos données personnelles. Elles peuvent être partagées uniquement avec :
                     </p>
                     <ul className="list-disc pl-6 mt-2 space-y-2 text-muted-foreground">
-                        <li>Nos prestataires de services techniques (hébergement, authentification via Clerk).</li>
+                        <li>Nos prestataires de services techniques (hébergement, authentification via ).</li>
                         <li>Les autorités compétentes si la loi l'exige.</li>
                     </ul>
                 </section>

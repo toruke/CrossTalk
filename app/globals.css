@@ -1,38 +1,35 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap");
+
+@theme {
+  --color-primary: #4F46E5;
+  --color-primary-hover: #4338CA;
+  --color-primary-light: #EEF2FF;
+  --color-accent: #06B6D4;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
 
 :root {
   --background: #ffffff;
-  --foreground: #0a0a0a;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-
-  /* CrossTalk custom colors */
-  --color-primary: #1E7F88;
-  --color-primary-hover: #176570;
-  --color-secondary: #F1843F;
-  --color-secondary-hover: #E06B27;
+  --foreground: #0f172a;
+  --color-muted-foreground: #64748b;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Better focus styles */
-*:focus-visible {
-  outline: 2px solid #1E7F88;
-  outline-offset: 2px;
+.font-serif-display {
+  font-family: "Instrument Serif", Georgia, serif;
 }

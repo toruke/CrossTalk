@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r tailwind /c/Users/Emmanuel Narcisi/Documents/atena --include=*.json --include=*.js --include=*.mjs --include=*.ts)",
+      "Bash(grep -r dark: /c/Users/Emmanuel Narcisi/Documents/atena/app /c/Users/Emmanuel Narcisi/Documents/atena/src --include=*.tsx --include=*.ts)",
+      "Bash(grep -r \"container\\\\|prose\" /c/Users/Emmanuel Narcisi/Documents/atena/app /c/Users/Emmanuel Narcisi/Documents/atena/src --include=*.tsx)",
+      "Bash(grep -Er \"variant:|corePlugins|extend:|plugin\\\\\\(|require\\\\\\(.*tailwind\" /c/Users/Emmanuel Narcisi/Documents/atena --include=*.js --include=*.mjs --include=*.ts --include=*.tsx)",
+      "Bash(ls \"c:\\\\Users\\\\Emmanuel Narcisi\\\\Documents\\\\atena\"/.env*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(\"c:\\\\Users\\\\Emmanuel Narcisi\\\\Documents\\\\atena\\\\prisma\\\\schema.prisma\":*)",
+      "Bash(node -e \":*)",
+      "Bash(node -e \"const fs=require\\(''fs''\\); const s=fs.readFileSync\\(''prisma/schema.prisma'',''utf8''\\); console.log\\(s.length, s.includes\\(''model User''\\)\\);\")"
+    ]
+  }
+}
